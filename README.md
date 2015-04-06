@@ -1,2 +1,2 @@
-# pwm-led
-Arduino PWM example of LED pulsing (fade up/down) using manual PWM.
+# arduino-led
+Arduino examples of LED pulsing (fade up/down) using manual PWM, multiplexing, combonation of both, and serial control.
