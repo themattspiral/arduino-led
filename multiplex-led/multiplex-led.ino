@@ -2,12 +2,13 @@
  * multiplex-led
  *
  * Arduino LED multiplexing example, used as a POC for my approach to Nixie tube control.
- * This example assumes 4 leds are available, grouped as 2 sets of 2. There are 2 'anode' 
- * pins, one attached to each group of 2 (alternating LEDs). There are 4 'cathode' pins, 
- * each one controlling the base of an NPN transistor such that when the pin is HIGH, the 
- * LED ground will be connected to the Arduino ground and current will flow.
+ * This example assumes 4 leds are available. There is 1 'anode' pin, shared among all 4 LEDs. 
+ * There are 4 'cathode' pins, each one controlling the base of an NPN transistor such that when
+ * the pin is HIGH, the LED ground will be connected to the Arduino ground and current will flow.
  *
- *            ANODE_1 (PIN 3)                        ANODE_2 (PIN 4)
+ *                               ANODE_1 (PIN 12)
+ *                                     |
+ *                  ----------------------------------------
  *                  |                                      |
  *       ----------------------                 ------------------------
  *       |                    |                 |                      |
@@ -18,71 +19,67 @@
  *         P----                P----             P----                  P----
  *        /    |               /    |            /    |                 /    |
  *       N  CATHODE_1         N   CATHODE_2     N   CATHODE_3          N   CATHODE_4
- *       |   (PIN 5)          |    (PIN 6)      |    (PIN 7)           |    (PIN 8)
+ *       |   (PIN 2)          |    (PIN 3)      |    (PIN 4)           |    (PIN 5)
  *      GND                 GND                GND                    GND 
  *
- * Since we have only 4 LEDs, this is decidedly overkill, because we could really just drive
- * each one individually with a single pin, rather than multiplexing. Further, we're using
- * 4 individual 'cathode' pins when really the concept of muxing aims to control more elements 
- * with fewer pins. So we should be using a BCD-to-decimal decoder chip controlled with just 2 pins 
- * to drive the 4 cathodes, but lacking such an IC, we're just using direct pins to allow us to 
- * proceed with multiplexing and get the logic correct.
+ * Keep in mind, we only have 4 leds, so we could hard-ground them all and drive each one individually 
+ * with a dedicated anode pin, rather than multiplexing. But that would go against the point of this
+ * demonstration, which is specifically meant to show multiplexing.
  *
- * Here's how the multiplexing works. Only 1 anode will be active at a time, and we will switch back 
- * forth between them quickly to ensure everything appears lit simultaneously. 
  */
 
-unsigned long last = 0UL;
-unsigned long fadeLengthMillis = 1000UL;
-int fadeUpState = 1;
+int PIN_ANODE_1 = 12;
 
-unsigned long fadeBaseMicros = 20UL;
-unsigned long fadeMaxMicros = 1000UL;
+int PIN_CATHODE_1 = 2;
+int PIN_CATHODE_2 = 3;
+int PIN_CATHODE_3 = 4;
+int PIN_CATHODE_4 = 5;
+
+int DEMO_CYCLE_MS = 2000;
+int DELAYS[] = {250, 100, 50, 20, 1};
+int CURRENT_DELAY_INDEX = 0;
+
+unsigned long LAST_ELAPSED_MS = 0;
 
 void setup() {
-  // initialize digital pin 13 as an output
-  pinMode(13, OUTPUT);
+  pinMode(PIN_ANODE_1, OUTPUT);
+  pinMode(PIN_CATHODE_1, OUTPUT);
+  pinMode(PIN_CATHODE_2, OUTPUT);
+  pinMode(PIN_CATHODE_3, OUTPUT);
+  pinMode(PIN_CATHODE_4, OUTPUT);
 }
 
 // loop runs forever
 void loop() {
   unsigned long now = millis();
-  unsigned long diff = now - last;
+  unsigned long diff = now - LAST_ELAPSED_MS;
   
-  unsigned long litDurationMicros = 0UL;
-  
-  /* calculate the lighted duration in microseconds. note - this needs to be improved
-   * to scale the duration based on the appropriate fraction of the fade length, rather 
-   * than assuming equivalent millis to micros over a 1 sec period.
-   */
-  if (fadeUpState == 1) {
-    // fade up
-    litDurationMicros = fadeBaseMicros + diff;
-  } else {
-    // fade down
-    litDurationMicros = fadeMaxMicros - diff;
+  if (diff >= DEMO_CYCLE_MS) {
+    LAST_ELAPSED_MS = now;
     
-    // avoid 'negative' overflow in unsigned long, or values less then base/min
-    if (fadeMaxMicros < diff || litDurationMicros < fadeBaseMicros) {
-      litDurationMicros = fadeBaseMicros;
+    CURRENT_DELAY_INDEX++;
+    if (CURRENT_DELAY_INDEX > 4) {
+      CURRENT_DELAY_INDEX = 0;
     }
   }
   
-  digitalWrite(13, HIGH);
-  delayMicroseconds(litDurationMicros);
-  digitalWrite(13, LOW);
-  delayMicroseconds(fadeMaxMicros);
+  digitalWrite(PIN_ANODE_1, HIGH);
   
-  if (diff > fadeLengthMillis) {
-    // reset last switch time
-    last = now;
+  digitalWrite(PIN_CATHODE_1, HIGH);
+  delay(DELAYS[CURRENT_DELAY_INDEX]);
   
-    // swap fade direction
-    if (fadeUpState == 0) {
-      fadeUpState = 1;
-    } else {
-      fadeUpState = 0;
-    }
-  }
+  digitalWrite(PIN_CATHODE_1, LOW);
+  digitalWrite(PIN_CATHODE_2, HIGH);
+  delay(DELAYS[CURRENT_DELAY_INDEX]);
+  
+  digitalWrite(PIN_CATHODE_2, LOW);
+  digitalWrite(PIN_CATHODE_3, HIGH);
+  delay(DELAYS[CURRENT_DELAY_INDEX]);
+  
+  digitalWrite(PIN_CATHODE_3, LOW);
+  digitalWrite(PIN_CATHODE_4, HIGH);
+  delay(DELAYS[CURRENT_DELAY_INDEX]);
+  
+  digitalWrite(PIN_CATHODE_4, LOW);
 }
 
