@@ -1,6 +1,15 @@
 /**
+ * pwm-led
+ * 
  * Arduino PWM example of LED pulsing (fade up/down) using manual PWM.
  */
+
+int PIN_ANODE_1 = 12;
+
+int PIN_CATHODE_1 = 2;
+int PIN_CATHODE_2 = 3;
+int PIN_CATHODE_3 = 4;
+int PIN_CATHODE_4 = 5;
 
 unsigned long last = 0UL;
 unsigned long fadeLengthMillis = 1000UL;
@@ -10,8 +19,16 @@ unsigned long fadeBaseMicros = 20UL;
 unsigned long fadeMaxMicros = 1000UL;
 
 void setup() {
-  // initialize digital pin 13 as an output
-  pinMode(13, OUTPUT);
+  pinMode(PIN_ANODE_1, OUTPUT);
+  pinMode(PIN_CATHODE_1, OUTPUT);
+  pinMode(PIN_CATHODE_2, OUTPUT);
+  pinMode(PIN_CATHODE_3, OUTPUT);
+  pinMode(PIN_CATHODE_4, OUTPUT);
+  
+  digitalWrite(PIN_CATHODE_1, HIGH);
+  digitalWrite(PIN_CATHODE_2, HIGH);
+  digitalWrite(PIN_CATHODE_3, HIGH);
+  digitalWrite(PIN_CATHODE_4, HIGH);
 }
 
 // loop runs forever
@@ -32,15 +49,15 @@ void loop() {
     // fade down
     litDurationMicros = fadeMaxMicros - diff;
     
-    // avoid 'negative' overflow in unsigned long, or values less then base/min
+    // avoid 'negative' overflow in unsigned long, or values less than base/min
     if (fadeMaxMicros < diff || litDurationMicros < fadeBaseMicros) {
       litDurationMicros = fadeBaseMicros;
     }
   }
   
-  digitalWrite(13, HIGH);
+  digitalWrite(PIN_ANODE_1, HIGH);
   delayMicroseconds(litDurationMicros);
-  digitalWrite(13, LOW);
+  digitalWrite(PIN_ANODE_1, LOW);
   delayMicroseconds(fadeMaxMicros);
   
   if (diff > fadeLengthMillis) {
