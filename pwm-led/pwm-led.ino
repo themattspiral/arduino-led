@@ -12,11 +12,11 @@ int PIN_CATHODE_3 = 4;
 int PIN_CATHODE_4 = 5;
 
 unsigned long last = 0UL;
-unsigned long fadeLengthMillis = 1000UL;
+int fadeLengthMillis = 1000;
 int fadeUpState = 1;
 
-unsigned long fadeBaseMicros = 20UL;
-unsigned long fadeMaxMicros = 1000UL;
+int fadeMinMicros = 20;
+int fadeMaxMicros = 800;
 
 void setup() {
   pinMode(PIN_ANODE_1, OUTPUT);
@@ -29,36 +29,36 @@ void setup() {
   digitalWrite(PIN_CATHODE_2, HIGH);
   digitalWrite(PIN_CATHODE_3, HIGH);
   digitalWrite(PIN_CATHODE_4, HIGH);
+  
+  //Serial.begin(9600);
 }
 
 // loop runs forever
-void loop() {
+void loop() {  
   unsigned long now = millis();
-  unsigned long diff = now - last;
+  int diff = now - last;
   
-  unsigned long litDurationMicros = 0UL;
+  long litDurationMicros = 0L;
   
-  /* calculate the lighted duration in microseconds. note - this needs to be improved
-   * to scale the duration based on the appropriate fraction of the fade length, rather 
-   * than assuming equivalent millis to micros over a 1 sec period.
-   */
   if (fadeUpState == 1) {
     // fade up
-    litDurationMicros = fadeBaseMicros + diff;
+    //litDurationMicros = fadeBaseMicros + diff;
+    litDurationMicros = map(diff, 0, fadeLengthMillis, fadeMinMicros, fadeMaxMicros);
   } else {
     // fade down
-    litDurationMicros = fadeMaxMicros - diff;
+    //litDurationMicros = fadeMaxMicros - diff;
+    litDurationMicros = map(diff, 0, fadeLengthMillis, fadeMaxMicros, fadeMinMicros);
     
     // avoid 'negative' overflow in unsigned long, or values less than base/min
-    if (fadeMaxMicros < diff || litDurationMicros < fadeBaseMicros) {
-      litDurationMicros = fadeBaseMicros;
-    }
+    //if (fadeMaxMicros < diff || litDurationMicros < fadeBaseMicros) {
+    //  litDurationMicros = fadeBaseMicros;
+    //}
   }
   
   digitalWrite(PIN_ANODE_1, HIGH);
   delayMicroseconds(litDurationMicros);
   digitalWrite(PIN_ANODE_1, LOW);
-  delayMicroseconds(fadeMaxMicros);
+  delayMicroseconds(fadeMaxMicros + litDurationMicros);
   
   if (diff > fadeLengthMillis) {
     // reset last switch time
