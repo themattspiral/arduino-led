@@ -8,8 +8,8 @@ shield.
 There are examples of:
 1. [pwm-led] LED pulsing (fade up/down) using manual PWM
 2. [multiplex-led] Multiplexing
-3. [mux-pwm-led] Combination of PWM and multiplexing
-4. [serial-led] Serial control
+3. (TODO) [mux-pwm-led] Combination of PWM and multiplexing
+4. (TODO) [serial-led] Serial control
  
 ## Setup
 
